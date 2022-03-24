@@ -1,0 +1,83 @@
+{"intents":[
+    {
+        "tag":"greetings",
+        "patterns" : ["hello","hi","hey","salutations","hi there","hey there","hello there"],
+        "responses" : ["hi","hey","hello","hi there","hey there","hello there"],
+        "entities" : {}
+    },
+    {
+        "tag":"goodbye",
+        "patterns" : ["bye","goodbye","see you next time","see you later"],
+        "responses" : ["bye","goodbye","see you","see ya","cya","good night","good night"],
+        "entities" : {}
+    },
+    {
+        "tag":"name",
+        "patterns" : ["What is your name?","what sould I call you?","whats your name?","Can you tell me your name?"],
+        "responses" : ["My name is Hitbotx","I am a chatbot assistant named Hitbotx","I am Hitbotx, your assistant","I am Hitbotx"],
+        "entities" : {}
+    },
+    {
+        "tag":"help",
+        "patterns":["what could you do for me ?"," how could you help me?", "what could you give me ?"],
+        "responses":["As I am a music bot, i could give you some informations about music, artists or music genre and more...\nYou could ask me for example: Who is the artist of Hurricane? what is the music genre of Hurricane ? or any music related question "],
+        "entities" : {}
+    },
+    {
+        "tag":"thanks",
+        "patterns" : ["thanks","thank you", "thank you for the information", "thank you very much", "thank you very much for the information"],
+        "responses" : ["You are welcome","No problem","My pleasure","It was my pleasure to help you"],
+        "entities" : {}
+    },
+    {
+        "tag":"artist",
+        "patterns" : [
+            "who is the (author|creator|artist|writer|composer) of /w* ?",
+            "Who (wrote|composed) .*"     
+        ],
+
+        "responses" : [],
+        "entities" : 
+            {
+                "music_name" : [
+                    ".* of (.*)" ,
+                    ".* wrote (.*)",
+                    ".* composed (.*)" 
+                ]
+            }
+        
+    },
+    {
+        "tag":"genre",
+        "patterns" : ["what is the genre of (.*)", "what is the music genre of (.*)"],
+        "responses" : [],
+        "entities" : 
+            {
+                "music_name" : [
+                    ".* of (.*)"
+                ]
+            }
+    },
+    {
+        "tag":"information",
+        "patterns" : ["what are the information about ", "info", "what's about","tell me about","what could you tell me about"],
+        "responses" : [],
+        "entities" : 
+            {
+                "music_name" : [
+                    ".*about (.*) (by)?"
+                ],
+                "artist_name" : [
+
+                    ".* by (.*)"
+                ]
+            }
+    },
+    {
+        "tag":"recommandation",
+        "patterns": ["what should i listen to", "what could you recommand to me"],
+        "responses": [],
+        "entities" : {}
+    }
+]
+}
