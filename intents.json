@@ -33,6 +33,7 @@
         "tag":"artist",
         "patterns" : [
             "who is the (author|creator|artist|writer|composer) of /w* ?",
+            "who is the artist of hello ?",
             "Who (wrote|composed) .*"     
         ],
 
@@ -60,12 +61,12 @@
     },
     {
         "tag":"information",
-        "patterns" : ["what are the information about ", "info", "what's about","tell me about","what could you tell me about"],
+        "patterns" : ["what are the information about /w* by /w*", "what's about /w* by /w*","tell me about /w* by /w*","what could you tell me about /w* by /w*"],
         "responses" : [],
         "entities" : 
             {
                 "music_name" : [
-                    ".*about (.*) (by)?"
+                    ".*about (.*) by.*"
                 ],
                 "artist_name" : [
 
@@ -78,6 +79,25 @@
         "patterns": ["what should i listen to", "what could you recommand to me"],
         "responses": [],
         "entities" : {}
+    },
+    {
+        "tag": "random_music",
+        "patterns": [
+            "Could you give me a random music ? ", 
+            "Surprise me with a random music", 
+            "Could you surprise me with a random music ?", 
+            "Give me a random music"
+        ],
+        "responses": [],
+        "entities" : { 
+            "genre" : [
+                ".* random (.*) music .*"
+            ],
+            "information" : [
+                ".* with (.*)"
+            ]
+        }
+
     }
 ]
 }

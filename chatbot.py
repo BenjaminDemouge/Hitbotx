@@ -22,8 +22,6 @@ nltk.download('punkt', quiet=True)
 nltk.download('wordnet', quiet=True)
 nltk.download('omw-1.4', quiet=True)
 
-
-
 def find_element_key_is_value(list, key, value):
     for dict in list:
         if dict[key] == value:
@@ -31,8 +29,6 @@ def find_element_key_is_value(list, key, value):
     return None
 
 class Chatbot():
-
-
     def __init__(self, intent_file, intent_methods =  None, model_name="Chatbot_model",default_response=None):
 
         self.intents = self.load_json_intents(intent_file) 
@@ -145,9 +141,7 @@ class Chatbot():
         res = self.model.predict(np.array([p]))[0]  # predict the class of the sentence
         ERROR_THRESHOLD = 0.6
         results = [[i, r] for i, r in enumerate(res) if r > ERROR_THRESHOLD] # get the results that are greater than the error threshold
-        print(results)
         results.sort(key=lambda x: x[1], reverse=True) # sort the results in descending order
-                
         return [
             {
                 'tag': self.classes[result[0]],
@@ -195,7 +189,6 @@ class Chatbot():
         # if the intent is found and the intent method is found in the intent_methods dictionary (meaning it request with entities)
         if intents[0]['tag'] in self.intent_methods.keys(): 
             entities = self._get_entities(message,intents[0]) # get the entities
-            print('function like artist .. :', self.intent_methods[intents[0]['tag']](**entities))
             return self.intent_methods[intents[0]['tag']](**entities) # return the tag and the appropriete response
         else: # else it means that we have a simple request (without any entity)
             return self._get_response(intents) # return the response of the chatbot
