@@ -1,5 +1,6 @@
 username,instance_id,artist_name,track_name,music_genre,energy,danceability,popularity,duration,tempo,rating
-Benjamin#2222,0,0,0,0,0,0,0,0,0,3
-Benjamin#2222,0,0,0,0,0,0,0,0,0,1
-Benjamin#2222,0,0,0,0,0,0,0,0,0,0
-Benjamin#2222,0,0,0,0,0,0,0,0,0,3
+Benjamin#2222,43248,Frédéric Chopin,"Ballade No.1 in G minor, Op.23",Classical,19.0,32.0,41.0,9:30,137,5
+Benjamin#2222,51243,Everything But The Girl,Tougher Than the Rest - 2013 Remaster,Electronic,24.0,55.0,35.0,4:13,98,5
+Benjamin#2222,47973,Yuki Hayashi,My Hero Academia,Anime,89.0,15.0,47.0,3:25,0,5
+Benjamin#2222,83489,Kraftwerk,Pocket Calculator / Dentaku - 3-D,Electronic,65.0,78.0,36.0,6:35,135,3
+Benjamin#2222,74029,Slushii,Destiny,Electronic,86.0,61.0,36.0,3:20,150,4

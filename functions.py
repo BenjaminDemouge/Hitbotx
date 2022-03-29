@@ -1,11 +1,12 @@
 import discord
 import os
 from dotenv import load_dotenv
-from chatbot import Chatbot
-import pandas as pd
-import random as rd 
-import requests
-from recommendation import *
+import random as rd
+import requests #used in get_youtube
+import nltk
+
+
+
 
 def clean_up_data(df):
 
@@ -292,149 +293,15 @@ def random_music(**kwargs):
 
     return {'text': text, 'embed': embed}
 
-rating_emojis = ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣']
 
 def emoji_to_number(emoji):
+    rating_emojis = ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣']
     if emoji not in rating_emojis:
         return None
     return rating_emojis.index(emoji)
 
 async def display_reaction(message):
+    rating_emojis = ['0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣']
     #display all the emojis' number on the message
     for emoji in rating_emojis:
         await message.add_reaction(emoji)
-
-def recommendation():
-    #get the user
-
-    text = None
-    embed = None
-    df_user = df[df['user_id'] == userID]
-    if len(df_user) <= 3:
-        text =  "You have not yet looked for enough music, so I can't recommend you anything"
-    else:
-        df_user = df_user.sort_values(by=['popularity'], ascending=False)
-        youtube = get_youtube(f"{df_user['track_name'].values[0]} by {df_user['artist_name'].values[0]}")
-        text = "Here are some musics that I think you would like:"
-        embed = discord.Embed(title=youtube['title'], url=youtube['url'])
-        embed.set_image(url=youtube['image'])
-        embed.add_field(name="artist", value=df_user['artist_name'].values[0])
-        embed.add_field(name="music", value=df_user['track_name'].values[0])
-        embed.add_field(name="genre", value=df_user['music_genre'].values[0])
-        embed.add_field(name="energy", value=df_user['energy'].values[0])
-        embed.add_field(name="danceability", value=df_user['danceability'].values[0])
-        embed.add_field(name="popularity", value=df_user['popularity'].values[0])
-        embed.add_field(name="duration", value=df_user['duration_ms'].values[0])
-        embed.add_field(name="tempo", value=df_user['tempo'].values[0])
-        embed.add_field(name="date", value= youtube['date'])
-
-    return {'text': text, 'embed': embed}
-
-
-client = discord.Client()
-
-df = pd.read_csv('music_genre.csv')
-df = clean_up_data(df)
-print(df.head())
-
-chatbot = Chatbot('intents.json', 
-                    intent_methods = {'artist': artist, 
-                                        'genre': genre, 
-                                        'information': information,
-                                        'random_music': random_music, 
-                                        'recommendation': recommendation
-                                    })
-chatbot.train_model()
-
-
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        # if the message contains an embed add emoji to it
-
-        if message.embeds:
-            for emoji in rating_emojis:
-                await message.add_reaction(emoji)
-        return    
-
-    if isinstance(chatbot.request(message.content), dict):
-        response = chatbot.request(message.content)['text']
-        print('response: ', response)
-        embed = chatbot.request(message.content)['embed']
-        print('embed: ', embed)
-        await message.channel.send(response, embed=embed)
-        #send emoji to the embed message
-        await message.add_reaction('👍')
-    else:
-        response = chatbot.request(message.content)
-        await message.channel.send(response, embed=None)
-
-df_users = pd.DataFrame({'username':[], 
-                        'instance_id':[],	
-                        'artist_name':[],	
-                        'track_name':[],
-                        'music_genre':[],
-                        'energy':[],
-                        'danceability':[],
-                        'popularity':[],
-                        'duration':[],
-                        'tempo':[], 
-                        'rating':[]})  
-
-async def add_ratings(username,embeds, rating, df_users):
-    #retrieve artist and track name from the embed
-    artist_name = embeds[0].fields[0].value
-    print('artist_name: ', artist_name)
-    track_name = embeds[0].fields[1].value
-    print('track_name: ', track_name)
-    #retrieve the music from the df with the artist and track name
-    music_information = df[df['artist_name'] == artist_name][df['track_name'] == track_name]
-    print('music_information: ', music_information)
-    instance_id = music_information['instance_id'].values[0]
-    music_genre = music_information['music_genre'].values[0]
-    energy = music_information['energy'].values[0]
-    danceability = music_information['danceability'].values[0]
-
-    popularity = music_information['popularity'].values[0]
-    duration = music_information['duration'].values[0]
-    tempo = music_information['tempo'].values[0]
-
-    #if the music is already in the df_users, update the rating
-    if len(df_users[(df_users['username'] == username) & (df_users['instance_id'] == instance_id)]) > 0:
-        print('coucouc')
-        df_users[(df_users['instance_id'] == instance_id) & (df_users['username'] == username)]['rating'] = rating
-    else:
-        #if the music is not in the df_users, add it to the df_users
-        df_users.loc[len(df_users)] = [username, instance_id, artist_name, track_name, music_genre, energy, danceability, popularity, duration, tempo, rating]
-
-    df_users.to_csv('users.csv', index=False)
-
-async def get_message(payload):
-    channel = client.get_channel(payload.channel_id)
-    message = await channel.fetch_message(payload.message_id)
-    return message
-
-
-@client.event
-async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):#recupère le message pour avoir les infos sur la music pour ajouter les infos dans le df_users
-    
-    message = await get_message(payload)
-    embeds = message.embeds
-    if payload.user_id == client.user.id:
-        return
-    if payload.emoji.name in rating_emojis:
-        print('AAAAAAAA----------AAAAAAAAA')
-        print('payload: ', payload)
-        print('AAAAAAAA----------AAAAAAAAA')
-        await add_ratings(username = f'{payload.member.name}#{payload.member.discriminator}',embeds = embeds, rating = emoji_to_number(payload.emoji.name), df_users = df_users)
-
-    
-@client.event
-async def on_ready():
-    print(f'{client.user} has connected to Discord!')
-
-
-load_dotenv()
-client.run(os.getenv('DISCORD_TOKEN'))
-
-
