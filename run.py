@@ -6,7 +6,6 @@ import pandas as pd
 import random as rd 
 import numpy as np
 import requests
-from recommendation import *
 import nltk
 from nltk.stem import WordNetLemmatizer
 
