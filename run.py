@@ -4,8 +4,14 @@ from dotenv import load_dotenv
 from chatbot import Chatbot
 import pandas as pd
 import random as rd 
+import numpy as np
 import requests
 from recommendation import *
+import nltk
+from nltk.stem import WordNetLemmatizer
+
+df_users = pd.read_csv('users.csv')
+
 
 def clean_up_data(df):
 
@@ -36,7 +42,7 @@ def clean_up_data(df):
 
 def get_youtube(research):
     load_dotenv()
-    API_KEY = os.getenv("YOUTUBE_API_KEY_2")
+    API_KEY = os.getenv("YOUTUBE_API_KEY")
     url = f"https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=2" \
                 f"&q={research}&type=video" \
                 f"&key={API_KEY}"
@@ -49,6 +55,21 @@ def get_youtube(research):
     image = response['items'][0]['snippet']['thumbnails']['high']['url']#if you want to change the size of the image put medium or high instead of default
     title = response['items'][0]['snippet']['title']
     return {'url': url, 'description': description, 'image' : image, 'date' : date, 'title' : title}
+
+def get_embed(data):
+    youtube = get_youtube(f"{data[0][1]} by {data[0][2]}")
+    embed = discord.Embed(title = youtube['title'], url = youtube['url'], color = discord.Color.blue())
+    embed.set_image(url = youtube['image'])
+    embed.add_field(name = 'Artist', value = data[0][1])
+    embed.add_field(name = 'music name', value = data[0][2], inline = True)
+    embed.add_field(name = 'music genre', value = data[0][8], inline = True)
+    embed.add_field(name = 'popularity', value = data[0][3], inline = True)
+    embed.add_field(name = 'danceability', value = data[0][4], inline = True)
+    embed.add_field(name = 'duration', value = data[0][5], inline = True)
+    embed.add_field(name = 'energy', value = data[0][6], inline = True)
+    embed.add_field(name = 'tempo', value = data[0][7], inline = True)
+    embed.add_field(name = 'date', value = youtube['date'], inline = True)
+    return embed
 
 def clean_up_string(string):
     #clean string drop the potential question mark at the end of the music name
@@ -81,7 +102,7 @@ def artist(**kwargs):
                 f"otherwise here is the link to the video of the music:"
         youtube = get_youtube(f"{music_artist[0][1]} by {music_artist[0][0]}")
         embed = discord.Embed(title=youtube['title'],  url=youtube['url'])
-        embed.set_image(url=youtube['url'])
+        embed.set_image(url=youtube['image'])
         embed.add_field(name="artist", value=music_artist[0][0])
         embed.add_field(name="music", value=music_artist[0][1])
 
@@ -91,7 +112,7 @@ def genre(**kwargs):
     
     music_name = kwargs.get('music_name',None)
     music_name = clean_up_string(music_name)
-
+    print('music_name: ', music_name)
     music_genres_artist = df[df['track_name'].str.lower() == music_name.lower()][['music_genre','artist_name']].values
     text = ""
     text, embed = None, None
@@ -122,27 +143,22 @@ def information(**kwargs):
     text, embed = None, None
 
     music_name = kwargs.get('music_name',None)
-    artist_name = kwargs.get('artist_name',None)
+    
     #clean words
-    print('music_name', music_name)
-    print('artist_name', artist_name)
+    print('music_name', music_name)   
     music_name = clean_up_string(music_name)
-    artist_name = clean_up_string(artist_name) if artist_name != None else None
-    print('music_name', music_name)
-    print('artist_name', artist_name)
+    
+
     music_info = df[df['track_name'].str.lower() == music_name.lower()]
-    print('music_info\n', music_info)
-    music_info = music_info[music_info['artist_name'].str.lower() == artist_name.lower()] if artist_name != None else music_info
-    print('music_info\n', music_info)
     music_information = music_info.values
     print('music_information', music_information)
     #shuffle the music_information  
     rd.shuffle(music_information)
     if len(music_information) == 0:
-        text =  "Could you be more precise about music name? and if you need help write 'help'"
+        text =  "Could you be more precise about music name? and if you need help write 'help me'"
     elif len(music_information) == 1:
         youtube = get_youtube(f"{music_information[0][2]} by {music_information[0][1]}")
-        text = f"here are some information and a video link about **{music_name}** by **{artist_name}**:"
+        text = f"here are some information and a video link about **{music_name}** by **{music_information[0][1]}**:"
 
         embed = discord.Embed(title=youtube['title'], url=youtube['url'])
         embed.set_image(url=youtube['image'])
@@ -159,8 +175,8 @@ def information(**kwargs):
 
     else:
         youtube = get_youtube(f"{music_information[0][2]} by {music_information[0][1]}")
-        text = f"As there are several **{music_name}** the information that you are "\
-                f"looking for could be **{music_information[0][1]}** \n\n"\
+        text = f"As there are several **{music_name}** the music that you are "\
+                f"looking for could be wrote by **{music_information[0][1]}** \n\n"\
                 f"here is the link to the video of the music:"
         embed = discord.Embed(title=youtube['title'], url=youtube['url'])
         embed.set_image(url=youtube['image'])
@@ -168,7 +184,7 @@ def information(**kwargs):
         embed.add_field(name="music", value=music_information[0][2])
         embed.add_field(name="popularity", value=music_information[0][3])
         embed.add_field(name="danceability", value=music_information[0][4])
-        embed.add_field(name="duration_ms", value=music_information[0][5])
+        embed.add_field(name="duration", value=music_information[0][5])
         embed.add_field(name="energy", value=music_information[0][6])
         embed.add_field(name="tempo", value=music_information[0][7])
         embed.add_field(name="genre", value=music_information[0][8])
@@ -304,29 +320,110 @@ async def display_reaction(message):
     for emoji in rating_emojis:
         await message.add_reaction(emoji)
 
-def recommendation():
-    #get the user
+def clean_up_df_users(df_users):
+    for genre in df_users['music_genre'].unique():
+        df_users[genre] = df_users['music_genre'].apply(lambda x: 1 if genre in x else 0)
+
+    df_users_name = df_users['username']
+    df_users.drop(['music_genre','instance_id','artist_name','track_name','duration'], axis=1, inplace=True)
+
+    for music in df_users:
+        #multiple all the value by the rating value
+        df_users[music] = df_users[music] * df_users['rating']
+
+    df_users['username'] = df_users_name
+    df_users = df_users.groupby(by = 'username').sum()
+    df_users.drop(['rating'], axis=1, inplace=True)
+    return df_users
+
+def get_score(df_user, coefficient):
+
+    scores = {'energy':0,
+            'danceability':0,
+            'popularity':0,
+            'tempo':0,
+            'Electronic':0,
+            'Anime':0,
+            'Jazz':0,
+            'Alternative':0,
+            'Country':0,
+            'Rap':0,
+            'Blues':0,
+            'Rock':0,
+            'Classical':0,
+            'Hip-Hop':0}
+
+    for column in df_user.columns:
+        scores[f'{column}'] = df_user[column].sum()/coefficient
+
+    return scores
+
+def one_hot_encoder(df):
+    for genre in df['music_genre'].unique():
+        df[genre] = df['music_genre'].apply(lambda x: 100 if x == genre else 0)
+    return df
+
+def df_clean_up_for_scoring(df):
+    df = one_hot_encoder(df)
+    df.drop(['artist_name','track_name','duration','music_genre'], axis=1, inplace=True)
+    return df
+
+def df_user_clean_for_scoring(df_user):
+    df_user = one_hot_encoder(df_user)
+    df_user.drop(['music_genre','instance_id','artist_name','track_name','duration'], axis=1, inplace=True)
+    for music in df_user:
+        #multiple all the value by the rating value
+        df_user[music] = df_user[music] * df_user['rating']
+    df_user.drop(['rating'], axis=1, inplace=True)
+    return df_user 
+    
+def cosine_distance(user_score,line):
+    #retrieve the instance_id from the line
+    instance = line[0]
+    df_score = line[1:]
+    return {'instance_id': int(instance),'cosine_similarity': 100*round(np.inner(user_score,df_score)/(np.linalg.norm(user_score)*np.linalg.norm(df_score)),6)}
+
+def df_cosine_similarity(user_score, df):
+    data = {'instance_id':[],'cosine_similarity':[]}
+    for line in df.iloc[:,:].values.tolist():
+        data['instance_id'].append(cosine_distance(user_score,line)['instance_id'])
+        data['cosine_similarity'].append(cosine_distance(user_score,line)['cosine_similarity'])
+    df_final_scoring = pd.DataFrame(data).sort_values(by=['cosine_similarity'],ascending=False)
+    return df_final_scoring
+
+def recommendation(message):
+    #get the username as well as the discriminator from the message
+    user = message.author.name
+    discriminator = message.author.discriminator
+    username = f"{user}#{discriminator}"
+    df_users = pd.read_csv('users.csv')
+    df = pd.read_csv('music_genre.csv')
+    df = clean_up_data(df)
 
     text = None
     embed = None
-    df_user = df[df['user_id'] == userID]
+    df_user = df_users[df_users['username'] == username]
+
     if len(df_user) <= 3:
-        text =  "You have not yet looked for enough music, so I can't recommend you anything"
+        text =  "You have not yet rated enough music, so I can't recommend you anything"
     else:
-        df_user = df_user.sort_values(by=['popularity'], ascending=False)
-        youtube = get_youtube(f"{df_user['track_name'].values[0]} by {df_user['artist_name'].values[0]}")
-        text = "Here are some musics that I think you would like:"
-        embed = discord.Embed(title=youtube['title'], url=youtube['url'])
-        embed.set_image(url=youtube['image'])
-        embed.add_field(name="artist", value=df_user['artist_name'].values[0])
-        embed.add_field(name="music", value=df_user['track_name'].values[0])
-        embed.add_field(name="genre", value=df_user['music_genre'].values[0])
-        embed.add_field(name="energy", value=df_user['energy'].values[0])
-        embed.add_field(name="danceability", value=df_user['danceability'].values[0])
-        embed.add_field(name="popularity", value=df_user['popularity'].values[0])
-        embed.add_field(name="duration", value=df_user['duration_ms'].values[0])
-        embed.add_field(name="tempo", value=df_user['tempo'].values[0])
-        embed.add_field(name="date", value= youtube['date'])
+        df_scoring = df_clean_up_for_scoring(df)
+        coefficient = df_user['rating'].sum()
+        df_user.drop(['username'], axis=1, inplace=True)
+        df_user = df_user_clean_for_scoring(df_user)
+        user_score = get_score(df_user, coefficient).values() 
+        user_score = list(user_score)
+        recommendation = df_cosine_similarity(user_score,df_scoring).head(1)
+        print('music_instance_id:',recommendation['instance_id'].values[0])
+        print('cosine_similarity:',recommendation['cosine_similarity'].values[0])
+
+        text = f"Here is your recommendation for **{user}** with a similarity of **{round(recommendation['cosine_similarity'].values[0],3)}%** with your profile (music liked):"
+        df = pd.read_csv('music_genre.csv')
+        df = clean_up_data(df)
+        data = df[df['instance_id'] == recommendation['instance_id'].values[0]].values
+        print('data:\n',data)
+        embed = get_embed(data)
+            
 
     return {'text': text, 'embed': embed}
 
@@ -336,6 +433,8 @@ client = discord.Client()
 df = pd.read_csv('music_genre.csv')
 df = clean_up_data(df)
 print(df.head())
+
+#df_users = pd.DataFrame(columns=['username','instance_id','artist_name','track_name','music_genre','energy','danceability','popularity','duration','tempo','rating'])
 
 chatbot = Chatbot('intents.json', 
                     intent_methods = {'artist': artist, 
@@ -357,29 +456,17 @@ async def on_message(message):
                 await message.add_reaction(emoji)
         return    
 
-    if isinstance(chatbot.request(message.content), dict):
-        response = chatbot.request(message.content)['text']
+    if isinstance(chatbot.request(message), dict):
+        response = chatbot.request(message)['text']
         print('response: ', response)
-        embed = chatbot.request(message.content)['embed']
+        embed = chatbot.request(message)['embed']
         print('embed: ', embed)
         await message.channel.send(response, embed=embed)
-        #send emoji to the embed message
-        await message.add_reaction('👍')
     else:
-        response = chatbot.request(message.content)
+        response = chatbot.request(message)
         await message.channel.send(response, embed=None)
 
-df_users = pd.DataFrame({'username':[], 
-                        'instance_id':[],	
-                        'artist_name':[],	
-                        'track_name':[],
-                        'music_genre':[],
-                        'energy':[],
-                        'danceability':[],
-                        'popularity':[],
-                        'duration':[],
-                        'tempo':[], 
-                        'rating':[]})  
+
 
 async def add_ratings(username,embeds, rating, df_users):
     #retrieve artist and track name from the embed
@@ -401,7 +488,6 @@ async def add_ratings(username,embeds, rating, df_users):
 
     #if the music is already in the df_users, update the rating
     if len(df_users[(df_users['username'] == username) & (df_users['instance_id'] == instance_id)]) > 0:
-        print('coucouc')
         df_users[(df_users['instance_id'] == instance_id) & (df_users['username'] == username)]['rating'] = rating
     else:
         #if the music is not in the df_users, add it to the df_users

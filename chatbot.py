@@ -183,12 +183,14 @@ class Chatbot():
         return entities # return the entities dictionary
 
     def request(self, message):
-
-        intents = self._predict_class(sentence = message) # predict the class of the sentence
+        print(f'Message: {message}')
+        intents = self._predict_class(sentence = message.content) # predict the class of the sentence
         print(intents)
         # if the intent is found and the intent method is found in the intent_methods dictionary (meaning it request with entities)
-        if intents[0]['tag'] in self.intent_methods.keys(): 
-            entities = self._get_entities(message,intents[0]) # get the entities
+        if intents[0]['tag'] != 'recommendation' and intents[0]['tag'] in self.intent_methods.keys(): 
+            entities = self._get_entities(message.content,intents[0]) # get the entities
             return self.intent_methods[intents[0]['tag']](**entities) # return the tag and the appropriete response
+        elif intents[0]['tag'] == 'recommendation':
+            return self.intent_methods[intents[0]['tag']](message)
         else: # else it means that we have a simple request (without any entity)
             return self._get_response(intents) # return the response of the chatbot

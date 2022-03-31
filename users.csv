@@ -1,6 +1,19 @@
 username,instance_id,artist_name,track_name,music_genre,energy,danceability,popularity,duration,tempo,rating
-Benjamin#2222,43248,Frédéric Chopin,"Ballade No.1 in G minor, Op.23",Classical,19.0,32.0,41.0,9:30,137,5
-Benjamin#2222,51243,Everything But The Girl,Tougher Than the Rest - 2013 Remaster,Electronic,24.0,55.0,35.0,4:13,98,5
-Benjamin#2222,47973,Yuki Hayashi,My Hero Academia,Anime,89.0,15.0,47.0,3:25,0,5
-Benjamin#2222,83489,Kraftwerk,Pocket Calculator / Dentaku - 3-D,Electronic,65.0,78.0,36.0,6:35,135,3
-Benjamin#2222,74029,Slushii,Destiny,Electronic,86.0,61.0,36.0,3:20,150,4
+Benjamin#2222,55974,Tyga,Get Loose,Rap,55.0,92.0,50.0,0:0,106,5
+Benjamin#2222,47064,Mt. Joy,Julia,Rock,41.0,57.0,60.0,3:10,82,4
+Benjamin#2222,88860,Gorillaz,November Has Come,Alternative,57.0,70.0,53.0,2:45,84,4
+Benjamin#2222,91280,Upchurch,Lord Knows (feat. Justin Adams),Country,77.0,77.0,47.0,3:13,130,3
+Benjamin#2222,84198,J.J. Cale,Don't Go To Strangers,Blues,20.0,80.0,55.0,2:25,0,5
+Benjamin#2222,86333,Charlie Musselwhite,Christo Redemptor,Blues,25.0,48.0,31.0,3:20,83,5
+Dehkos#5735,55974,Tyga,Get Loose,Rap,55.0,92.0,50.0,0:0,106,4
+Benjamin#2222,30097,Dillon Francis,Hurricane,Electronic,76.0,62.0,28.0,3:36,128,3
+Dehkos#5735,47064,Mt. Joy,Julia,Rock,41.0,57.0,60.0,3:10,82,2
+Benjamin#2222,74332,Daddy Yankee,Gasolina,Hip-Hop,80.0,86.0,78.0,3:13,96,5
+Dehkos#5735,88860,Gorillaz,November Has Come,Alternative,57.0,70.0,53.0,2:45,84,3
+Dehkos#5735,91280,Upchurch,Lord Knows (feat. Justin Adams),Country,77.0,77.0,47.0,3:13,130,1
+Dehkos#5735,84198,J.J. Cale,Don't Go To Strangers,Blues,20.0,80.0,55.0,2:25,0,2
+Dehkos#5735,58780,Norah Jones,Wintertime,Jazz,22.0,53.0,64.0,3:48,0,4
+Dehkos#5735,29686,Daft Punk,Harder Better Faster Stronger,Electronic,72.0,82.0,70.0,3:45,123,5
+Benjamin#2222,29686,Daft Punk,Harder Better Faster Stronger,Electronic,72.0,82.0,70.0,3:45,123,5
+Dehkos#5735,42445,Steely Dan,Fire In The Hole,Blues,44.0,62.0,49.0,0:0,73,5
+Benjamin#2222,28349,PEEKABOO,Step It Up,Electronic,63.0,57.0,29.0,3:23,105,1
