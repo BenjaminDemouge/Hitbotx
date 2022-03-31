@@ -26,7 +26,7 @@ For example : "Give me a random rock or rap music with a high energy and low dan
 ## Bot Info
 - Chatbot platform: Discord
 - [Chat with bot](https://discord.gg/uHeMfQTt) (You must download the Python code and launch it before starting to chat)
-- [Working video of this bot](https://www.youtube.com/watch?v=YOUTUBE_VIDEO_ID_HERE) OUIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+- [Working video of this bot](https://youtu.be/3px6rY39YDM)
 
 
 ### Used API
